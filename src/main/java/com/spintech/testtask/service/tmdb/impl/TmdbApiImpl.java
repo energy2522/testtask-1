@@ -36,7 +36,6 @@ public class TmdbApiImpl implements TmdbApi {
 
         ResponseEntity<PopularTvShowModule> response = restTemplate.getForEntity(url, PopularTvShowModule.class);
 
-        //TODO add checking 400 exceptions
         if (!response.getStatusCode().is2xxSuccessful()) {
             return null;
         }
