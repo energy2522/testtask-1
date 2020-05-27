@@ -1,5 +1,7 @@
 package com.spintech.testtask.entity;
 
+import java.util.Set;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,4 +24,7 @@ public class User {
     private String email;
 
     private String password;
+
+    @OneToMany
+    private Set<UserWatched> watchedShows;
 }

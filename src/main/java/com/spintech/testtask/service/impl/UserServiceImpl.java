@@ -1,6 +1,7 @@
 package com.spintech.testtask.service.impl;
 
 import com.spintech.testtask.entity.User;
+import com.spintech.testtask.exception.UserNotFoundException;
 import com.spintech.testtask.repository.UserRepository;
 import com.spintech.testtask.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,6 +18,11 @@ public class UserServiceImpl implements UserService {
     private UserRepository userRepository;
 
     private PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
+
+    @Override
+    public User findById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new UserNotFoundException("User with id " + id + " not found!"));
+    }
 
     @Override
     public User registerUser(String email, String password) {

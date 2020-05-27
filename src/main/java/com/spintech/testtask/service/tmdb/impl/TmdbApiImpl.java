@@ -1,50 +1,61 @@
 package com.spintech.testtask.service.tmdb.impl;
 
-import com.spintech.testtask.service.tmdb.TmdbApi;
-import lombok.extern.slf4j.Slf4j;
+import java.net.URI;
+
 import org.apache.http.client.utils.URIBuilder;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.util.UriComponentsBuilder;
 
-import java.net.URISyntaxException;
+import com.spintech.testtask.dto.TvShowDto;
+import com.spintech.testtask.module.PopularTvShowModule;
+import com.spintech.testtask.service.tmdb.TmdbApi;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
 public class TmdbApiImpl implements TmdbApi {
-    @Value("${tmdb.apikey}")
-    private String tmdbApiKey;
-    @Value("${tmdb.language}")
-    private String tmdbLanguage;
+    private static final String tvUrlPath = "/tv";
+    private static final String popularUrlPath = "/popular";
+    private static final String creditsKey = "credits";
+    private static final String appendToResponseKey = "append_to_response";
+
     @Value("${tmdb.api.base.url}")
     private String tmdbApiBaseUrl;
 
-    public String popularTVShows() throws IllegalArgumentException {
-        try {
-            String url = getTmdbUrl("/tv/popular");
+    @Autowired
+    private RestTemplate restTemplate;
 
-            RestTemplate restTemplate = new RestTemplate();
-            ResponseEntity<String> response
-                    = restTemplate.getForEntity(url, String.class);
+    @Override
+    public PopularTvShowModule popularTVShows() throws IllegalArgumentException {
+        String url = tmdbApiBaseUrl + tvUrlPath + popularUrlPath;
 
-            if (!response.getStatusCode().is2xxSuccessful()) {
-                return null;
-            }
+        ResponseEntity<PopularTvShowModule> response = restTemplate.getForEntity(url, PopularTvShowModule.class);
 
-            return response.getBody();
-        } catch (URISyntaxException e) {
-            log.error("Couldn't get popular tv shows");
+        //TODO add checking 400 exceptions
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            return null;
         }
-        return null;
+
+        return response.getBody();
     }
 
-    private String getTmdbUrl(String tmdbItem) throws URISyntaxException {
-        StringBuilder builder = new StringBuilder(tmdbApiBaseUrl);
-        builder.append(tmdbItem);
-        URIBuilder uriBuilder = new URIBuilder(builder.toString());
-        uriBuilder.addParameter("language", tmdbLanguage);
-        uriBuilder.addParameter("api_key", tmdbApiKey);
-        return uriBuilder.build().toString();
+    @Override
+    public TvShowDto getTvShowInfo(Long id) {
+        String url = tmdbApiBaseUrl + tvUrlPath + "/" + id;
+        url = UriComponentsBuilder.fromHttpUrl(url).queryParam(appendToResponseKey, creditsKey).toUriString();
+
+        ResponseEntity<TvShowDto> response = restTemplate.getForEntity(url, TvShowDto.class);
+
+        if (!response.getStatusCode().is2xxSuccessful()) {
+            return null;
+        }
+
+        return response.getBody();
     }
+
 }
